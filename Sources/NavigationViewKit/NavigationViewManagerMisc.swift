@@ -23,6 +23,8 @@ public extension NavigationViewManager{
     ///        }
     ///  ```
     func backButtonDisplayMode(for tag:String,mode:UINavigationItem.BackButtonDisplayMode) {
-        contorllers[tag]?.controller.navigationBar.topItem?.backButtonDisplayMode = mode
+        DispatchQueue.main.async {
+            self.contorllers[tag]?.controller.navigationBar.topItem?.backButtonDisplayMode = mode
+        }
     }
 }

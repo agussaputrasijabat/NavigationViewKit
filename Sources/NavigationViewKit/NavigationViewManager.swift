@@ -66,9 +66,11 @@ public class NavigationViewManager {
     ///   - animated: 是否在返回时使用动画
     ///   - action: 返回后执行的代码段。该代码段的执行顺序在cleanAction之后
     public func popToRoot(tag: String, animated: Bool = true, action: @escaping () -> Void = {}) {
-        contorllers[tag]?.controller.popToRootViewController(animated: animated)
-        contorllers[tag]?.cleanAction()
-        action()
+        DispatchQueue.main.async {
+            self.contorllers[tag]?.controller.popToRootViewController(animated: animated)
+            self.contorllers[tag]?.cleanAction()
+            action()
+        }
     }
 
     /// 直接添加一个新视图到指定的NavigationView中
@@ -76,9 +78,11 @@ public class NavigationViewManager {
     ///   - tag: NavigationView的名字（自定义）。用于分辨同一app中的多个NavigationView
     ///   - animated: 转换至新视图是否使用动画
     ///   - view: 视图内容
-    public func pushView<V: View>(tag: String, animated: Bool = true, @ViewBuilder view: () -> V) {
-        guard let controllerItem = contorllers[tag] else { return }
-        controllerItem.controller.pushViewController(UIHostingController(rootView: view()), animated: animated)
+    public func pushView<V: View>(tag: String, animated: Bool = true, @ViewBuilder view: @escaping () -> V) {
+        DispatchQueue.main.async {
+            guard let controllerItem = self.contorllers[tag] else { return }
+            controllerItem.controller.pushViewController(UIHostingController(rootView: view()), animated: animated)
+        }
     }
 
     /// 删除已注册的NavigationView，除非在app中NavigationView会很多且动态出现，否则无需使用
@@ -94,8 +98,10 @@ public class NavigationViewManager {
     }
 
     private func pushViewObsever(notification: Notification) {
-        guard let pushViewItem = notification.object as? PushViewItem else { return }
-        pushView(tag: pushViewItem.tag, animated: pushViewItem.animated, view: pushViewItem.view)
+        DispatchQueue.main.async {
+            guard let pushViewItem = notification.object as? PushViewItem else { return }
+            self.pushView(tag: pushViewItem.tag, animated: pushViewItem.animated, view: pushViewItem.view)
+        }
     }
 
     deinit {
@@ -191,7 +197,9 @@ public struct AllowPopToRoot: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .introspectNavigationController { nv in
-                nvManager.wrappedValue.addController(controller: nv, tag: tag, cleanAction: cleanAction)
+                DispatchQueue.main.async {
+                    nvManager.wrappedValue.addController(controller: nv, tag: tag, cleanAction: cleanAction)
+                }
             }
             .environment(\.currentNaviationViewName, tag)
     }
