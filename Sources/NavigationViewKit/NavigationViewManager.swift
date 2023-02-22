@@ -35,19 +35,40 @@ import SwiftUI
 public class NavigationViewManager {
     var contorllers: [String: ControllerItem] = [:]
     var cancllables: Set<AnyCancellable> = []
+    
+    public static var shared: NavigationViewManager?
 
     public init() {
-        NotificationCenter.default.publisher(for: .NavigationViewManagerBackToRoot, object: nil)
-            .sink(receiveValue: { notification in
-                self.backToRootObsever(notification: notification)
-            })
-            .store(in: &cancllables)
-
-        NotificationCenter.default.publisher(for: .NavigationViewManagerPushView, object: nil)
-            .sink(receiveValue: { notification in
-                self.pushViewObsever(notification: notification)
-            })
-            .store(in: &cancllables)
+        NavigationViewManager.shared = self
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didNavigationViewManagerBackToRoot(_:)),
+                                               name: .NavigationViewManagerBackToRoot,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didNavigationViewManagerPushView(_:)),
+                                               name: .NavigationViewManagerPushView,
+                                               object: nil)
+        
+//        NotificationCenter.default.publisher(for: .NavigationViewManagerBackToRoot, object: nil)
+//            .sink(receiveValue: { notification in
+//                self.backToRootObsever(notification: notification)
+//            })
+//            .store(in: &cancllables)
+//
+//        NotificationCenter.default.publisher(for: .NavigationViewManagerPushView, object: nil)
+//            .sink(receiveValue: { notification in
+//                self.pushViewObsever(notification: notification)
+//            })
+//            .store(in: &cancllables)
+    }
+    
+    @objc func didNavigationViewManagerBackToRoot(_ notification: Notification) {
+        self.backToRootObsever(notification: notification)
+    }
+    
+    @objc func didNavigationViewManagerPushView(_ notification: Notification) {
+        self.pushViewObsever(notification: notification)
     }
 
     /// 注册UINavigationController
